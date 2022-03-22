@@ -1,18 +1,30 @@
-import React, { useCallback, useRef, useState } from "react";
-import OT from "@opentok/client";
+import React, { useCallback, useRef, useState } from 'react';
+import useDevices from '../hooks/useDevices';
+import OT from '@opentok/client';
 
 export function usePublisher() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [pubInitialised, setPubInitialised] = useState(false);
   const publisherRef = useRef();
+  const { deviceInfo, getDevices } = useDevices();
 
-  const streamCreatedListener = React.useCallback(({ stream }) => {}, []);
+  const streamCreatedListener = React.useCallback(({ stream }) => {
+    /* setPubInitialised(true); */
+  }, []);
+
+  const videoElementCreatedListener = React.useCallback(() => {
+    setPubInitialised(true);
+  }, []);
 
   const streamDestroyedListener = useCallback(({ stream }) => {
     publisherRef.current = null;
     setPubInitialised(false);
     setIsPublishing(false);
   }, []);
+
+  const accessAllowedListener = useCallback(() => {
+    getDevices();
+  }, [getDevices]);
 
   const accessDeniedListener = useCallback(() => {
     publisherRef.current = null;
@@ -21,50 +33,59 @@ export function usePublisher() {
 
   const initPublisher = useCallback(
     (containerId, publisherOptions) => {
-      console.log("UsePublisher - initPublisher");
+      console.log('UsePublisher - initPublisher');
       if (publisherRef.current) {
-        console.log("UsePublisher - Already initiated");
+        console.log('UsePublisher - Already initiated');
         return;
       }
       if (!containerId) {
-        console.log("UsePublisher - Container not available");
+        console.log('UsePublisher - Container not available');
       }
       const finalPublisherOptions = Object.assign({}, publisherOptions, {
-        insertMode: "append",
-        width: "100%",
-        height: "100%",
+        insertMode: 'append',
+        width: '100%',
+        height: '100%',
         style: {
-          buttonDisplayMode: "off",
-          nameDisplayMode: "on",
+          buttonDisplayMode: 'off',
+          nameDisplayMode: 'on'
         },
-        showControls: false,
+        showControls: false
       });
-      console.log("usePublisher finalPublisherOptions", finalPublisherOptions);
+      console.log('usePublisher finalPublisherOptions', finalPublisherOptions);
       publisherRef.current = OT.initPublisher(
         containerId,
         finalPublisherOptions,
         (err) => {
           if (err) {
-            console.log("[usePublisher]", err);
+            console.log('[usePublisher]', err);
             publisherRef.current = null;
           }
-          console.log("Publisher Created");
+          console.log('Publisher Created');
         }
       );
-      publisherRef.current.on("accessDenied", accessDeniedListener);
-      publisherRef.current.on("streamCreated", streamCreatedListener);
-      publisherRef.current.on("streamDestroyed", streamDestroyedListener);
-      setPubInitialised(true);
+      publisherRef.current.on('accessAllowed', accessAllowedListener);
+      publisherRef.current.on('accessDenied', accessDeniedListener);
+      publisherRef.current.on('streamCreated', streamCreatedListener);
+      publisherRef.current.on('streamDestroyed', streamDestroyedListener);
+      publisherRef.current.on(
+        'videoElementCreated',
+        videoElementCreatedListener
+      );
     },
-    [streamCreatedListener, streamDestroyedListener, accessDeniedListener]
+    [
+      streamCreatedListener,
+      streamDestroyedListener,
+      accessAllowedListener,
+      accessDeniedListener
+    ]
   );
 
   const destroyPublisher = useCallback(() => {
     if (!publisherRef.current) {
       return;
     }
-    publisherRef.current.on("destroyed", () => {
-      console.log("publisherRef.current Destroyed");
+    publisherRef.current.on('destroyed', () => {
+      console.log('publisherRef.current Destroyed');
     });
     publisherRef.current.destroy();
   }, []);
@@ -78,11 +99,11 @@ export function usePublisher() {
         return new Promise((resolve, reject) => {
           session.publish(publisherRef.current, (err) => {
             if (err) {
-              console.log("Publisher Error", err);
+              console.log('Publisher Error', err);
               setIsPublishing(false);
               reject(err);
             }
-            console.log("Published");
+            console.log('Published');
             setIsPublishing(true);
             resolve(publisherRef.current);
           });
@@ -114,5 +135,6 @@ export function usePublisher() {
     publish,
     pubInitialised,
     unpublish,
+    deviceInfo
   };
 }

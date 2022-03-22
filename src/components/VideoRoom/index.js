@@ -3,26 +3,26 @@ import React, {
   useContext,
   useEffect,
   useRef,
-  useState,
-} from "react";
-import { getCredentials } from "../../api/credentials";
-import { usePublisher } from "../../hooks/usePublisher";
-import { useSession } from "../../hooks/useSession";
-import { useChat } from "../../hooks/useChat";
-import { ControlToolBar } from "../ControlToolBar";
-import { Chat } from "../Chat";
-import { MeetingName } from "../MeetingName";
-import useStyles from "./styles";
-import { UserContext } from "../../context/UserContext";
+  useState
+} from 'react';
+import { getCredentials } from '../../api/credentials';
+import { usePublisher } from '../../hooks/usePublisher';
+import { useSession } from '../../hooks/useSession';
+import { useChat } from '../../hooks/useChat';
+import { ControlToolBar } from '../ControlToolBar';
+import { Chat } from '../Chat';
+import { MeetingName } from '../MeetingName';
+import useStyles from './styles';
+import { UserContext } from '../../context/UserContext';
 export function VideoRoom() {
   const { user } = useContext(UserContext);
   const videoContainer = useRef();
   const { publisher, publish, pubInitialised } = usePublisher();
   const { session, createSession, connected } = useSession({
-    container: videoContainer,
+    container: videoContainer
   });
   const { open, toggleChat, messages, sendMessage } = useChat({
-    session: session.current,
+    session: session.current
   });
   const [credentials, setCredentials] = useState(null);
   const [hasAudio, setHasAudio] = useState(user.defaultSettings.publishAudio);
@@ -42,7 +42,7 @@ export function VideoRoom() {
   };
 
   useEffect(() => {
-    getCredentials("").then(({ apikey, sessionId, token }) => {
+    getCredentials('').then(({ apikey, sessionId, token }) => {
       setCredentials({ apikey, sessionId, token });
     });
   }, []);
@@ -64,7 +64,7 @@ export function VideoRoom() {
       publish({
         session: session.current,
         containerId: videoContainer.current.id,
-        publisherOptions: { ...user.defaultSettings, name: user.userName },
+        publisherOptions: { ...user.defaultSettings, name: user.userName }
       });
     }
   }, [publish, session, connected, pubInitialised, user]);
@@ -87,7 +87,7 @@ export function VideoRoom() {
       className={classes.container}
       ref={videoContainer}
     >
-      <MeetingName meetingName={"Meeting"} />
+      <MeetingName meetingName={'Meeting'} />
       <Chat
         messages={messages}
         open={open}

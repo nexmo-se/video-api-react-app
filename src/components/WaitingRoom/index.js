@@ -41,6 +41,7 @@ export function WaitingRoom() {
   let [audioDevice, setAudioDevice] = useState('');
   let [videoDevice, setVideoDevice] = useState('');
   let [audioOutputDevice, setAudioOutputDevice] = useState('');
+  const [networkTest, setNetworkTest] = useState(false);
   const [showQualityDialog, setShowQualityDialog] = useState(false);
   const waitingRoomVideoContainer = useRef();
 
@@ -98,7 +99,9 @@ export function WaitingRoom() {
   );
 
   const handleQualityTestDialogClose = () => {
+    console.log('handleQualityTestDialogClose', networkTest);
     setShowQualityDialog(false);
+    setNetworkTest(false);
   };
 
   const handleJoinClick = () => {
@@ -106,8 +109,17 @@ export function WaitingRoom() {
     push('/video-room');
   };
 
+  const toggleNetworkTest = () => {
+    if (networkTest) {
+      stopNetworkTest();
+      setNetworkTest(false);
+    } else {
+      runNetworkTest();
+      setNetworkTest(true);
+    }
+  };
+
   useEffect(() => {
-    console.log('Waiting room - Mount');
     const publisherOptions = {
       publishAudio: defaultLocalAudio,
       publishVideo: defaultLocalVideo
@@ -118,21 +130,18 @@ export function WaitingRoom() {
   }, [initPublisher, defaultLocalAudio, defaultLocalVideo]);
 
   useEffect(() => {
-    console.log('UseEffect - localAudio');
     if (publisher) {
       publisher.publishAudio(localAudio);
     }
   }, [localAudio, publisher]);
 
   useEffect(() => {
-    console.log('UseEffect - LocalVideo');
     if (publisher) {
       publisher.publishVideo(localVideo);
     }
   }, [localVideo, publisher]);
 
   useEffect(() => {
-    console.log('Effect Quality Test', qualityTest);
     if (!qualityTest.loading) {
       setShowQualityDialog(true);
     }
@@ -160,13 +169,8 @@ export function WaitingRoom() {
     pubInitialised
   ]);
 
-  /* useEffect(() => {
-    runNetworkTest();
-  }, [runNetworkTest]); */
-
   useEffect(() => {
     return () => {
-      console.log('useEffect destroyPublisher Unmount');
       destroyPublisher();
     };
   }, [destroyPublisher]);
@@ -284,37 +288,48 @@ export function WaitingRoom() {
         justifyContent="center"
         alignItems="center"
       >
-        <div className={classes.networkTestContainer}>
-          <div className={classes.flex}>
-            <div>Connectivity Test:</div>
-            <div>
-              {connectivityTest.loading ? (
-                <CircularProgress size={20} />
-              ) : connectivityTest.data && connectivityTest.data.success ? (
-                <CheckBox className={classes.green}></CheckBox>
-              ) : (
-                <Error className={classes.red} />
-              )}
-            </div>
-          </div>
-          <div className={classes.flex}>
-            <div>Quality Test:</div>
-            <div>
-              {qualityTest.loading ? (
-                <CircularProgress size={20} />
-              ) : qualityTest.data ? (
-                <CheckBox className={classes.green}></CheckBox>
-              ) : (
-                <Error className={classes.red} />
-              )}
-            </div>
-          </div>
-          <QualityTestDialog
-            selectedValue={qualityTest}
-            open={showQualityDialog}
-            onClose={handleQualityTestDialogClose}
-          ></QualityTestDialog>
+        <div className={classes.flex} style={{ margin: 5 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={toggleNetworkTest}
+          >
+            {networkTest ? 'Stop Network Test' : 'Start Network Test'}
+          </Button>
         </div>
+        {networkTest && (
+          <div className={classes.networkTestContainer}>
+            <div className={classes.flex}>
+              <div>Connectivity Test:</div>
+              <div>
+                {connectivityTest.loading ? (
+                  <CircularProgress size={20} />
+                ) : connectivityTest.data && connectivityTest.data.success ? (
+                  <CheckBox className={classes.green}></CheckBox>
+                ) : (
+                  <Error className={classes.red} />
+                )}
+              </div>
+            </div>
+            <div className={classes.flex}>
+              <div>Quality Test:</div>
+              <div>
+                {qualityTest.loading ? (
+                  <CircularProgress size={20} />
+                ) : qualityTest.data ? (
+                  <CheckBox className={classes.green}></CheckBox>
+                ) : (
+                  <Error className={classes.red} />
+                )}
+              </div>
+            </div>
+            <QualityTestDialog
+              selectedValue={qualityTest}
+              open={showQualityDialog}
+              onClose={handleQualityTestDialogClose}
+            ></QualityTestDialog>
+          </div>
+        )}
       </Grid>
       <Grid
         container
@@ -322,7 +337,7 @@ export function WaitingRoom() {
         justifyContent="center"
         alignItems="center"
       >
-        <Button variant="contained" color="primary" onClick={handleJoinClick}>
+        <Button variant="contained" color="secondary" onClick={handleJoinClick}>
           Join Call
         </Button>
       </Grid>

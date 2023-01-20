@@ -11,6 +11,7 @@
     "@testing-library/user-event": "^12.1.10",
     "install": "^0.13.0",
     "npm": "^6.14.8",
+    "opentok-layout-js": "^5.1.0",
     "opentok-network-test-js": "^2.4.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",

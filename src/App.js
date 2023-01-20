@@ -1,14 +1,11 @@
 import "./App.css";
 import { useMemo, useState } from "react";
-import {
-  BrowserRouter as Router,
-  Route,
-  Redirect,
-  Switch,
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Redirect, Switch } from "react-router-dom";
 import { WaitingRoom } from "./components/WaitingRoom";
 import { VideoRoom } from "./components/VideoRoom";
 import { UserContext } from "./context/UserContext";
+import { OtSpeechContext } from "./context/OtSpeechContext";
+import { OTSpeech } from "./lib/audioLevel";
 
 function AppRouter() {
   const [user, setUser] = useState({
@@ -23,13 +20,15 @@ function AppRouter() {
   return (
     <Router>
       <UserContext.Provider value={value}>
-        <Switch>
-          <Route path="/video-room" component={VideoRoom} />
-          <Route path="/waiting-room" component={WaitingRoom} />
-          <Route path="/">
-            <Redirect to="/waiting-room" />
-          </Route>
-        </Switch>
+        <OtSpeechContext.Provider value={{ otSpeech: OTSpeech() }}>
+          <Switch>
+            <Route path="/video-room" component={VideoRoom} />
+            <Route path="/waiting-room" component={WaitingRoom} />
+            <Route path="/">
+              <Redirect to="/waiting-room" />
+            </Route>
+          </Switch>
+        </OtSpeechContext.Provider>
       </UserContext.Provider>
     </Router>
   );
